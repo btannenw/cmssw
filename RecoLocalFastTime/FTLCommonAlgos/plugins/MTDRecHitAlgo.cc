@@ -31,7 +31,7 @@ MTDRecHitAlgo::makeRecHit(const FTLUncalibratedRecHit& uRecHit, uint32_t& flags)
   float time   = uRecHit.time();
   float timeError = uRecHit.timeError();
   
-  FTLRecHit rh( uRecHit.id(), energy, time, timeError );
+  FTLRecHit rh( uRecHit.id(), uRecHit.row(), uRecHit.column(), energy, time, timeError );
     
   // Now fill flags
   // all rechits from the digitizer are "good" at present

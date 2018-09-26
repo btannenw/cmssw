@@ -28,10 +28,14 @@
 
 #include <DataFormats/ForwardDetId/interface/BTLDetId.h>
 #include <DataFormats/ForwardDetId/interface/ETLDetId.h>
+#include <DataFormats/ForwardDetId/interface/MTDChannelIdentifier.h>
+#include "Geometry/CommonTopologies/interface/PixelTopology.h"
 
 #include <sstream>
 
 #include "CLHEP/Random/RandFlat.h"
+
+#include "Geometry/CommonTopologies/interface/Topology.h"
 
 using namespace std;
 using namespace edm;
@@ -146,15 +150,27 @@ void MTDRecoGeometryAnalyzer::testBTLLayers(const MTDDetLayerGeometry* geo,const
 
     vector<DetLayer::DetWithState> compDets = layer->compatibleDets(tsos,prop,*theEstimator);
     if (compDets.size()) {
-      cout << "compatibleDets: " << compDets.size() << endl
+      auto prop_pos = compDets.front().second.globalPosition();
+      auto local_pos = compDets.front().first->toLocal(prop_pos);
+      auto meas_point = compDets.front().first->topology().measurementPosition(local_pos);
+      auto pixel = static_cast<const PixelTopology&>(compDets.front().first->topology()).pixel(local_pos);
+      auto theChannel =  compDets.front().first->topology().channel(local_pos);
+      auto pixFromCh = MTDChannelIdentifier::channelToPixel(theChannel);
 
-	   << "  final state pos: " << compDets.front().second.globalPosition() << endl 
+
+      cout << "compatibleDets: " << compDets.size() << endl
+	   << "  final state pos: " << prop_pos << endl 
+	   << "  local state pos: " << local_pos << endl
+	   << "  measurement pos: " << meas_point << endl
+	   << " pixel : (" << pixel.first << ',' << pixel.second << ')' << endl
+	   << "       : (" << pixFromCh.first << ',' << pixFromCh.second << ')' << endl
+	   << "  channel : " << theChannel << endl
 	   << "  det         pos: " << compDets.front().first->position()
 	   << " id: " << std::hex << BTLDetId(compDets.front().first->geographicalId().rawId()).rawId() << std::dec<< endl 
 	   << "  distance " << (tsos.globalPosition()-compDets.front().first->position()).mag()
-
 	   << endl
-	   << endl;
+	   << endl;      
+
     } else {
       cout << " ERROR : no compatible det found" << endl;
     }    
@@ -201,13 +217,23 @@ void MTDRecoGeometryAnalyzer::testETLLayers(const MTDDetLayerGeometry* geo,const
   
     vector<DetLayer::DetWithState> compDets = layer->compatibleDets(tsos,prop,*theEstimator);
     if (compDets.size()) {
+      auto prop_pos = compDets.front().second.globalPosition();
+      auto local_pos = compDets.front().first->toLocal(prop_pos);
+      auto meas_point = compDets.front().first->topology().measurementPosition(local_pos);
+      auto pixel = static_cast<const PixelTopology&>(compDets.front().first->topology()).pixel(local_pos);
+      auto theChannel =  compDets.front().first->topology().channel(local_pos);
+      auto pixFromCh = MTDChannelIdentifier::channelToPixel(theChannel);
+      
       cout << "compatibleDets: " << compDets.size() << endl
-
-	   << "  final state pos: " << compDets.front().second.globalPosition() << endl 
+	   << "  final state pos: " << prop_pos << endl 
+	   << "  local state pos: " <<  local_pos << endl
+	   << "  measurement pos: " << meas_point << endl
+	   << "  channel: " << theChannel << endl
+	   << " pixel : (" << pixel.first << ',' << pixel.second << ')' << endl
+	   << "       : (" << pixFromCh.first << ',' << pixFromCh.second << ')' << endl
 	   << "  det         pos: " << compDets.front().first->position()
 	   << " id: " << std::hex << ETLDetId(compDets.front().first->geographicalId().rawId()).rawId() << std::dec << endl 
 	   << "  distance " << (tsos.globalPosition()-compDets.front().first->position()).mag()
-
 	   << endl
 	   << endl;
     } else {

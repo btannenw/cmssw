@@ -46,7 +46,7 @@ void CmsMTDConstruction::buildBTLModule(DDFilteredView& fv,
   
   const auto& copyNumbers = fv.copyNumbers();
   auto module_number = copyNumbers[copyNumbers.size()-2];
-  
+
   constexpr char positive[] = "PositiveZ";
   constexpr char negative[] = "NegativeZ";
 

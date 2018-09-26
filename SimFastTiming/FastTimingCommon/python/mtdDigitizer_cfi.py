@@ -58,15 +58,15 @@ _endcap_MTDDigitizer = cms.PSet(
         bxTime             = cms.double(25),
         etaResolution      = cms.string("0.03+0.0025*x"), # This is just a dummy dependence on eta.
         # n bits for the ADC 
-        adcNbits           = cms.uint32(12),
+        adcNbits           = cms.uint32(8),
         # n bits for the TDC
-        tdcNbits           = cms.uint32(12),
+        tdcNbits           = cms.uint32(11),
         # ADC saturation
-        adcSaturation_MIP  = cms.double(102),
+        adcSaturation_MIP  = cms.double(25),
         # for different thickness
         adcThreshold_MIP   = cms.double(0.025),
         # LSB for time of arrival estimate from TDC in ns
-        toaLSB_ns          = cms.double(0.005),
+        toaLSB_ns          = cms.double(0.013),
         )
     )
 

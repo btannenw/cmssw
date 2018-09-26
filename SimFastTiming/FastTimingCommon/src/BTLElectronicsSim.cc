@@ -125,7 +125,7 @@ void BTLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
     }
 
     //run the shaper to create a new data frame
-    BTLDataFrame rawDataFrame( it->first );    
+    BTLDataFrame rawDataFrame( it->first.detid_ );    
     runTrivialShaper(rawDataFrame,chargeColl,toa1,toa2);
     updateOutput(output,rawDataFrame);
     

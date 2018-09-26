@@ -19,6 +19,8 @@ class FTLUncalibratedRecHit {
 
   FTLUncalibratedRecHit();
   FTLUncalibratedRecHit(const DetId& detId, float ampl, float time, float timeError, unsigned char flags = 0);
+  FTLUncalibratedRecHit(const DetId& detId, uint8_t row, uint8_t column, 
+			float ampl, float time, float timeError, unsigned char flags = 0);
 
   ~FTLUncalibratedRecHit();
   float amplitude() const { return amplitude_; }
@@ -27,6 +29,8 @@ class FTLUncalibratedRecHit {
   float timeError() const {return timeError_; }
 
   DetId  id() const { return id_; }
+  int row() const { return row_; }
+  int column() const { return column_; }
 
   void setAmplitude( float amplitude ) { amplitude_ = amplitude; }
   void setTime( float time ) { time_ = time; }
@@ -46,6 +50,7 @@ class FTLUncalibratedRecHit {
   float time_;       //< Reconstructed time jitter
   float timeError_;  
   DetId  id_;          //< Detector ID
+  uint8_t row_, column_;
   unsigned char flags_;
 };
 

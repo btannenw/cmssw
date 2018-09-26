@@ -9,6 +9,10 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimFastTiming/FastTimingCommon/interface/MTDDigitizerTypes.h"
 
+#include "FWCore/Framework/interface/ESWatcher.h"
+#include "Geometry/Records/interface/MTDDigiGeometryRecord.h"
+#include "Geometry/MTDGeometryBuilder/interface/MTDGeometry.h"
+
 #include <tuple>
 
 namespace CLHEP {
@@ -23,7 +27,7 @@ class ETLDeviceSim {
   
   void getEvent(const edm::Event& evt) { }
 
-  void getEventSetup(const edm::EventSetup& evt) { }
+  void getEventSetup(const edm::EventSetup& evt);
 
   void getHitsResponse(const std::vector<std::tuple<int,uint32_t,float> > &hitRefs, 
 		       const edm::Handle<edm::PSimHitContainer> &hits,
@@ -31,6 +35,9 @@ class ETLDeviceSim {
 		       CLHEP::HepRandomEngine *hre);
 
  private:
+
+  edm::ESWatcher<MTDDigiGeometryRecord> geomwatcher_;
+  const MTDGeometry* geom_;
 
   float MIPPerMeV_;
   float bxTime_;

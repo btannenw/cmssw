@@ -83,6 +83,12 @@ class BTLDetId : public MTDDetId {
   
   /** Returns BTL crystal number. */
   inline int crystal() const { return ((id_>>kBTLCrystalOffset)&kBTLCrystalMask) + 1; }
+  
+  /** return the row in GeomDet language **/
+  inline int row() const { return (crystal()-1)%16; }
+  
+  /** return the column in GeomDetLanguage **/
+  inline int column() const { return (crystal()-1)/16; }
 
   /** Returns BTL iphi index for crystal according to type tile or bar */
   int iphi( CrysLayout lay ) const ;

@@ -1,6 +1,12 @@
 #include "SimFastTiming/FastTimingCommon/interface/BTLDeviceSim.h"
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/ForwardDetId/interface/MTDDetId.h"
+#include "DataFormats/ForwardDetId/interface/BTLDetId.h"
+
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "Geometry/CommonDetUnit/interface/GeomDetType.h"
+#include "Geometry/MTDGeometryBuilder/interface/ProxyMTDTopology.h"
+#include "Geometry/MTDGeometryBuilder/interface/RectangularMTDTopology.h"
 
 #include "CLHEP/Random/RandGaussQ.h"
 
@@ -12,6 +18,13 @@ BTLDeviceSim::BTLDeviceSim(const edm::ParameterSet& pset) :
   smearLightCollTime_(pset.getParameter<double>("smearLightCollectionTime")),
   PDE_(pset.getParameter<double>("PhotonDetectionEff")) { }
 
+void BTLDeviceSim::getEventSetup(const edm::EventSetup& evs) {
+  edm::ESHandle<MTDGeometry> geom;
+  if( geomwatcher_.check(evs) || geom_ == nullptr ) {
+    evs.get<MTDDigiGeometryRecord>().get(geom);
+    geom_ = geom.product();
+  }
+}
 
 void BTLDeviceSim::getHitsResponse(const std::vector<std::tuple<int,uint32_t,float> > &hitRefs, 
 				   const edm::Handle<edm::PSimHitContainer> &hits,
@@ -30,8 +43,35 @@ void BTLDeviceSim::getHitsResponse(const std::vector<std::tuple<int,uint32_t,flo
     // --- Safety check on the detector ID
     if ( detId.det()!=DetId::Forward || detId.mtdSubDetector()!=1 ) continue;
 
+    if(id==0) continue; // to be ignored at RECO level                                                              
+    BTLDetId btlid(detId) ;
+    DetId geoId = BTLDetId(btlid.mtdSide(),btlid.mtdRR(),btlid.module()+18*(btlid.modType()-1),0,1);
+    const MTDGeomDet* thedet = geom_->idToDet(geoId);
+    if( thedet == nullptr ) {
+      throw cms::Exception("BTLDeviceSim") << "GeographicalID: " << std::hex
+                                           << geoId.rawId()
+                                           << " (" << detId.rawId()<< ") is invalid!" << std::dec
+                                           << std::endl;
+    }
+    const ProxyMTDTopology& topoproxy = static_cast<const ProxyMTDTopology&>(thedet->topology());
+    const RectangularMTDTopology& topo = static_cast<const RectangularMTDTopology&>(topoproxy.specificTopology());
+    // calculate the simhit row and column                                                                           
+    const auto& pentry = hit.entryPoint();
+    Local3DPoint simscaled(0.1*pentry.x(),0.1*pentry.y(),0.1*pentry.z());
+    // translate from crystal-local coordinates to module-local coordinates to get the row and column
+    simscaled = topo.pixelToModuleLocalPoint(simscaled,btlid.row(),btlid.column());
+    const auto& thepixel = topo.pixel(simscaled); // mm -> cm here is the switch
+    const uint8_t row(thepixel.first), col(thepixel.second);
+
+    if( btlid.row() != row || btlid.column() != col ) {
+      throw cms::Exception("BTLDeviceSim")
+	<< "BTLDetId (row,column): (" << btlid.row() << ',' << btlid.column() <<") is not equal to "
+	<< "topology (row,column): (" << uint32_t(row) << ',' << uint32_t(col) <<")";
+    }
+    
     // --- Store the detector element ID as a key of the MTDSimHitDataAccumulator map
-    auto simHitIt = simHitAccumulator->emplace(id,mtd_digitizer::MTDCellInfo()).first;
+    auto simHitIt = simHitAccumulator->emplace(mtd_digitizer::MTDCellId(id,row,col),
+					       mtd_digitizer::MTDCellInfo()).first;
 
     // --- Get the simHit energy and convert it from MeV to photo-electrons
     float Npe = 1000.*hit.energyLoss()*LightYield_*LightCollEff_*PDE_;

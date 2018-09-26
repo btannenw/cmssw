@@ -60,7 +60,7 @@ BTLUncalibRecHitAlgo::makeRecHit(const BTLDataFrame& dataFrame ) const {
 			       << ' ' << toaLSBToNS_ << ' ' << std::endl;
   LogDebug("BTLUncalibRecHit") << "Final uncalibrated amplitude : " << amplitude << std::endl;
   
-  return FTLUncalibratedRecHit( dataFrame.id(), amplitude, time, timeError_, flag);
+  return FTLUncalibratedRecHit( dataFrame.id(), dataFrame.row(), dataFrame.column(), amplitude, time, timeError_, flag);
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
